@@ -1,8 +1,8 @@
 
-# Connect AI generates via OpenCutAPI [Try it online](https://www.capcutapi.top)
+# Connect AI generates via VectCutAPI [Try it online](https://www.capcutapi.top)
 
 ## Project Overview
-**OpenCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
+**VectCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
 
 Enjoy It!  😀😀😀
 
@@ -26,7 +26,7 @@ Enjoy It!  😀😀😀
 
 [![AI Cut](https://img.youtube.com/vi/fBqy6WFC78E/hqdefault.jpg)](https://www.youtube.com/watch?v=fBqy6WFC78E)
 
-**Combine AI-generated images and videos using OpenCutAPI**
+**Combine AI-generated images and videos using VectCutAPI**
 
 [More](pattern)
 
@@ -66,8 +66,8 @@ Enjoy It!  😀😀😀
 
 ```bash
 # 1. Clone the project
-git clone https://github.com/sun-guannan/OpenCutAPI.git
-cd OpenCutAPI
+git clone https://github.com/sun-guannan/VectCutAPI.git
+cd VectCutAPI
 
 # 2. Create a virtual environment (recommended)
 python -m venv venv-capcut
@@ -155,7 +155,7 @@ import requests
 
 # Add title text
 response = requests.post("http://localhost:9001/add_text", json={
-    "text": "Welcome to OpenCutAPI",
+    "text": "Welcome to VectCutAPI",
     "start": 0,
     "end": 5,
     "font": "Source Han Sans",read
