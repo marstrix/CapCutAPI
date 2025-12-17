@@ -1,4 +1,4 @@
-# 通过OpenCutAPI连接AI生成的一切   [在线体验](https://www.capcutapi.top)
+# 通过VectCutAPI连接AI生成的一切   [在线体验](https://www.capcutapi.top)
 
 <div align="center">
 
@@ -9,7 +9,7 @@
 
 ## 项目概览
 
-**OpenCutAPI** 是一款强大的云端 剪辑 API，它赋予您对 AI 生成素材（包括图片、音频、视频和文字）的精确控制权。
+**VectCutAPI** 是一款强大的云端 剪辑 API，它赋予您对 AI 生成素材（包括图片、音频、视频和文字）的精确控制权。
 它提供了精确的编辑能力来拼接原始的 AI 输出，例如给视频变速或将图片镜像反转。这种能力有效地解决了 AI 生成的结果缺乏精确控制，难以复制的问题，让您能够轻松地将创意想法转化为精致的视频。
 
 ### 核心优势
@@ -30,7 +30,7 @@
 
 [![AI Cut](https://img.youtube.com/vi/fBqy6WFC78E/hqdefault.jpg)](https://www.youtube.com/watch?v=fBqy6WFC78E)
 
-**通过OpenCutAPI，将AI生成的图片，视频组合起来**
+**通过VectCutAPI，将AI生成的图片，视频组合起来**
 
 [![Airbnb](https://img.youtube.com/vi/1zmQWt13Dx0/hqdefault.jpg)](https://www.youtube.com/watch?v=1zmQWt13Dx0)
 
@@ -68,8 +68,8 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/sun-guannan/OpenCutAPI.git
-cd OpenCutAPI
+git clone https://github.com/sun-guannan/VectCutAPI.git
+cd VectCutAPI
 
 # 2. 创建虚拟环境 (推荐)
 python -m venv venv-capcut
