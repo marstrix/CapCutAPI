@@ -1,4 +1,4 @@
-# 通过CapCutAPI连接AI生成的一切   [在线体验](https://www.capcutapi.top)
+# 通过OpenCutAPI连接AI生成的一切   [在线体验](https://www.capcutapi.top)
 
 <div align="center">
 
