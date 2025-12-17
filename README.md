@@ -1,10 +1,8 @@
 
-# Connect AI generates via CapCutAPI [Try it online](https://www.capcutapi.top)
+# Connect AI generates via OpenCutAPI [Try it online](https://www.capcutapi.top)
 
 ## Project Overview
-**CapCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
-
-All these features are designed to mirror the functionalities of the CapCut software, ensuring a familiar and efficient editing experience in the cloud.
+**OpenCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
 
 Enjoy It!  😀😀😀
 
@@ -12,7 +10,7 @@ Enjoy It!  😀😀😀
 
 ### Advantages
 
-1. **API-Powered Editing:** Access all CapCut/Jianying editing features, including multi-track editing and keyframe animation, through a powerful API.
+1. **API-Powered Editing:** Access all powerfull editing features, including multi-track editing and keyframe animation, through a powerful API.
 
 2. **Real-Time Cloud Preview:** Instantly preview your edits on a webpage without downloads, dramatically improving your workflow.
 
@@ -28,7 +26,7 @@ Enjoy It!  😀😀😀
 
 [![AI Cut](https://img.youtube.com/vi/fBqy6WFC78E/hqdefault.jpg)](https://www.youtube.com/watch?v=fBqy6WFC78E)
 
-**Combine AI-generated images and videos using CapCutAPI**
+**Combine AI-generated images and videos using OpenCutAPI**
 
 [More](pattern)
 
@@ -68,8 +66,8 @@ Enjoy It!  😀😀😀
 
 ```bash
 # 1. Clone the project
-git clone https://github.com/sun-guannan/CapCutAPI.git
-cd CapCutAPI
+git clone https://github.com/sun-guannan/OpenCutAPI.git
+cd OpenCutAPI
 
 # 2. Create a virtual environment (recommended)
 python -m venv venv-capcut
@@ -157,7 +155,7 @@ import requests
 
 # Add title text
 response = requests.post("http://localhost:9001/add_text", json={
-    "text": "Welcome to CapCutAPI",
+    "text": "Welcome to OpenCutAPI",
     "start": 0,
     "end": 5,
     "font": "Source Han Sans",read
