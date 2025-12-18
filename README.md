@@ -1,5 +1,5 @@
 
-# Connect AI generates via VectCutAPI [Try it online](https://www.capcutapi.top)
+# Connect AI generates via VectCutAPI [Try it online](https://www.vectcut.com)
 
 ## Project Overview
 **VectCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
