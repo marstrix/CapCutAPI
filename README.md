@@ -90,6 +90,9 @@ python capcut_server.py # Start the HTTP API server, default port: 9001
 
 python mcp_server.py # Start the MCP protocol service, supports stdio communication
 ```
+## Skill Integration Guide
+[Skill中文文档](https://github.com/sun-guannan/VectCutAPI/blob/main/vectcut-skill/README.md)
+[Skill Guide](https://github.com/sun-guannan/VectCutAPI/blob/main/vectcut-skill/README_EN.md)
 
 ## MCP Integration Guide
 
