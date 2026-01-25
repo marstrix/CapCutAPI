@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Skill-purple.svg)](https://claude.com/claude-code)
-[![VectCutAPI](https://img.shields.io/badge/VectCutAPI-800%2B%20Stars-orange.svg)](https://github.com/sun-guannan/VectCutAPI)
+[![VectCutAPI](https://img.shields.io/badge/VectCutAPI-1.5k%2B%20Stars-orange.svg)](https://github.com/sun-guannan/VectCutAPI)
 
 Empowering AI with professional video editing capabilities through VectCutAPI
 
