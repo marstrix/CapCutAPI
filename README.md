@@ -1,8 +1,13 @@
 
 # Connect AI generates via VectCutAPI [Try it online](https://www.vectcut.com)
 
-## Project Overview
-**VectCutAPI** is a powerful editing API that empowers you to take full control of your AI-generated assets, including images, audio, video, and text. It provides the precision needed to refine and customize raw AI output, such as adjusting video speed or mirroring an image. This capability effectively solves the lack of control often found in AI video generation, allowing you to easily transform your creative ideas into polished videos.
+## Preview
+
+**VectCut** is a **toA (toAgent)** video editing tool. It provides a rich set of cloud-based editing APIs and Skills, including features such as adding subtitles, illustrations, picture-in-picture (PiP), AI voiceovers, filters, and more.
+
+You can integrate our editing tools into any Agent-based environment, whether it’s a manually orchestrated workflow platform (such as **Coze, Dify, or N8N**) or an autonomous planning platform (such as **OpenClaw, Claude Code, or Trae**). This enables you to meet your needs for automated and bulk video production.
+
+We have open-sourced our interface code on GitHub, making it easy for various AI models to train on and learn our interfaces. Instead of fine-tuning models yourself, you can let the AI actively learn our API (feel free to give us a star to help AI index it even faster! 🤩).
 
 Enjoy It!  😀😀😀
 
