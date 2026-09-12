@@ -105,9 +105,10 @@ def save_draft_background(draft_id, draft_folder, task_id):
             for audio in audios:
                 remote_url = audio.remote_url
                 material_name = audio.material_name
-                # Use helper function to build path
-                if draft_folder:
-                    audio.replace_path = build_asset_path(draft_folder, draft_id, "audio", material_name)
+                # Use helper function to build path. This must match output_base_dir
+                # (which falls back to current_dir), since that's where the file is
+                # actually downloaded/copied to below, regardless of draft_folder.
+                audio.replace_path = build_asset_path(output_base_dir, draft_id, "audio", material_name)
                 if not remote_url:
                     logger.warning(f"Audio file {material_name} has no remote_url, skipping download.")
                     continue
@@ -128,9 +129,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
                 material_name = video.material_name
                 
                 if video.material_type == 'photo':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video.replace_path = build_asset_path(draft_folder, draft_id, "image", material_name)
+                    # Use helper function to build path. Must match output_base_dir,
+                    # since that's where the file is actually downloaded/copied to below.
+                    video.replace_path = build_asset_path(output_base_dir, draft_id, "image", material_name)
                     if not remote_url:
                         logger.warning(f"Image file {material_name} has no remote_url, skipping download.")
                         continue
@@ -144,9 +145,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
                     })
                 
                 elif video.material_type == 'video':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video.replace_path = build_asset_path(draft_folder, draft_id, "video", material_name)
+                    # Use helper function to build path. Must match output_base_dir,
+                    # since that's where the file is actually downloaded/copied to below.
+                    video.replace_path = build_asset_path(output_base_dir, draft_id, "video", material_name)
                     if not remote_url:
                         logger.warning(f"Video file {material_name} has no remote_url, skipping download.")
                         continue
