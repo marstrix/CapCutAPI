@@ -285,7 +285,7 @@ We welcome contributions of all forms\! Our iteration rules are:
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sun-guannan/CapCutAPI&type=Date)](https://www.star-history.com/#sun-guannan/CapCutAPI&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=sun-guannan/CapCutAPI&type=Date)](https://star-history.dera.page/#sun-guannan/CapCutAPI&Date)
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/sun-guannan/CapCutAPI?style=flat-square)
 ![GitHub code size](https://img.shields.io/github/languages/code-size/sun-guannan/CapCutAPI?style=flat-square)
