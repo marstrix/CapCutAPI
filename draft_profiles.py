@@ -63,9 +63,10 @@ PROFILES: Dict[str, DraftProfile] = {
 }
 
 PROFILE_ALIASES = {
-    "capcut": "capcut_legacy",
+    "capcut": "jianying_pro_10",
     "capcut_legacy": "capcut_legacy",
-    "jianying": "jianying_legacy",
+    "capcut_modern": "jianying_pro_10",
+    "jianying": "jianying_pro_10",
     "jianying_legacy": "jianying_legacy",
     "jianying_10": "jianying_pro_10",
     "jianying_10_x": "jianying_pro_10",
@@ -77,7 +78,7 @@ PROFILE_ALIASES = {
 
 def normalize_profile_name(name: Optional[str]) -> str:
     if not name:
-        return "capcut_legacy"
+        return "jianying_pro_10"
     key = name.strip().lower().replace(".", "_").replace("-", "_")
     if key not in PROFILE_ALIASES:
         raise ValueError(
@@ -91,7 +92,7 @@ def get_draft_profile(name: Optional[str] = None) -> DraftProfile:
         try:
             from settings.local import DRAFT_PROFILE
         except Exception:
-            DRAFT_PROFILE = "capcut_legacy"
+            DRAFT_PROFILE = "jianying_pro_10"
         name = DRAFT_PROFILE
     return PROFILES[normalize_profile_name(name)]
 
@@ -104,6 +105,28 @@ def write_profile_content(profile: DraftProfile, draft_dir: os.PathLike, content
     draft_path = Path(draft_dir)
     written: List[Path] = []
     content_data = json.loads(content)
+
+    # Auto-adjust canvas_config ratio based on dimensions
+    canvas_cfg = content_data.get("canvas_config", {})
+    w = canvas_cfg.get("width", content_data.get("width", 1080))
+    h = canvas_cfg.get("height", content_data.get("height", 1920))
+    if canvas_cfg.get("ratio") in ("original", None, ""):
+        if h > w:
+            canvas_cfg["ratio"] = "9:16"
+        elif w > h:
+            canvas_cfg["ratio"] = "16:9"
+        elif w == h:
+            canvas_cfg["ratio"] = "1:1"
+    content_data["canvas_config"] = canvas_cfg
+    content = json.dumps(content_data, ensure_ascii=False, indent=2)
+
+    # Remove any stale .locked files in draft directory
+    try:
+        lock_file = draft_path / ".locked"
+        if lock_file.exists():
+            lock_file.unlink()
+    except Exception:
+        pass
 
     targets = [profile.content_file, *profile.content_mirrors]
     for relative_path in targets:

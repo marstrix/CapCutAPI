@@ -1,4 +1,6 @@
 import requests
+import os
+import shutil
 from flask import Flask, request, jsonify, Response
 from datetime import datetime
 import pyJianYingDraft as draft
@@ -29,12 +31,17 @@ from save_draft_impl import save_draft_impl, query_task_status, query_script_imp
 from add_effect_impl import add_effect_impl
 from add_sticker_impl import add_sticker_impl
 from create_draft import create_draft
+from get_duration_impl import get_video_duration
 from util import generate_draft_url as utilgenerate_draft_url, hex_to_rgb
 from pyJianYingDraft.text_segment import TextStyleRange, Text_style, Text_border
 
 from settings.local import IS_CAPCUT_ENV, DRAFT_DOMAIN, PREVIEW_ROUTER, PORT
+from web_preview import preview_bp, broadcast_draft_update
+from desktop_companion import reload_capcut_desktop
 
 app = Flask(__name__)
+app.register_blueprint(preview_bp)
+
  
 @app.route('/add_video', methods=['POST'])
 def add_video():
@@ -119,6 +126,7 @@ def add_video():
             background_blur=background_blur
         )
         
+        broadcast_draft_update(draft_id=draft_id, action="add_video")
         result["success"] = True
         result["output"] = draft_result
         return jsonify(result)
@@ -222,6 +230,31 @@ def create_draft_service():
         error_message = f"Error occurred while creating draft: {str(e)}."
         result["error"] = error_message
         return jsonify(result)
+
+@app.route('/get_duration', methods=['POST'])
+def get_duration_service():
+    data = request.get_json() or {}
+    url = data.get('url') or data.get('video_url')
+    if not url:
+        return jsonify({"success": False, "error": "Parameter 'url' or 'video_url' is missing.", "output": ""})
+    res = get_video_duration(url)
+    if res.get("success"):
+        dur = res.get("output", 0)
+        ext = url.split(".")[-1].split("?")[0].lower() if "." in url else "mp4"
+        return jsonify({
+            "success": True,
+            "output": {
+                "duration": dur,
+                "format": ext
+            },
+            "error": ""
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": res.get("error", "Failed to retrieve media duration"),
+            "output": ""
+        })
         
 @app.route('/add_subtitle', methods=['POST'])
 def add_subtitle():
@@ -305,6 +338,7 @@ def add_subtitle():
             height=height
         )
         
+        broadcast_draft_update(draft_id=draft_id, action="add_subtitle")
         result["success"] = True
         result["output"] = draft_result
         return jsonify(result)
@@ -331,6 +365,14 @@ def add_text():
     track_name = data.get('track_name', "text_main")
     vertical = data.get('vertical', False)
     font_alpha = data.get('alpha', data.get('font_alpha', 1.0))  # Support both 'alpha' and 'font_alpha'  
+    # Typography & styling enhancements
+    bold = data.get('bold', False)
+    italic = data.get('italic', False)
+    underline = data.get('underline', False)
+    raw_align = data.get('alignment', data.get('align', 'center'))
+    align = 1 if raw_align in (1, 'center') else (0 if raw_align in (0, 'left') else 2)
+    line_spacing = float(data.get('line_spacing', 0.25))
+    letter_spacing = float(data.get('letter_spacing', 0.0))
     outro_animation = data.get('outro_animation', None)
     outro_duration = data.get('outro_duration', 0.5)
     width = data.get('width', 1080)
@@ -476,9 +518,16 @@ def add_text():
             height=height,
             fixed_width=fixed_width,
             fixed_height=fixed_height,
+            bold=bold,
+            italic=italic,
+            underline=underline,
+            align=align,
+            line_spacing=line_spacing,
+            letter_spacing=letter_spacing,
             text_styles=text_styles
         )
         
+        broadcast_draft_update(draft_id=draft_id, action="add_text")
         result["success"] = True
         result["output"] = draft_result
         return jsonify(result)
@@ -726,13 +775,27 @@ def query_script():
         result["error"] = error_message
         return jsonify(result)
 
+def _get_capcut_desktop_projects_dir():
+    if os.name == 'nt':
+        p = os.path.expandvars(r"%LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft")
+        if os.path.exists(p):
+            return p
+    else:
+        mac_p = os.path.expanduser('~/Library/Containers/com.lemon.lvpro/Data/Documents/JianyingPro/User Data/Projects/com.lveditor.draft')
+        if os.path.exists(mac_p):
+            return mac_p
+    return None
+
 @app.route('/save_draft', methods=['POST'])
 def save_draft():
-    data = request.get_json()
+    data = request.get_json() or {}
     
     # Get required parameters
     draft_id = data.get('draft_id')
     draft_folder = data.get('draft_folder')  # Draft folder parameter
+    project_name = data.get('project_name')
+    auto_deploy = data.get('auto_deploy', True)
+    auto_reload = data.get('auto_reload', False)
     
     result = {
         "success": False,
@@ -747,17 +810,107 @@ def save_draft():
         return jsonify(result)
     
     try:
-        # Call save_draft_impl method, start background task
-        draft_result = save_draft_impl(draft_id, draft_folder)
+        # Call save_draft_impl method
+        draft_result = save_draft_impl(draft_id, draft_folder, project_name=project_name, auto_deploy=auto_deploy)
         
+        # Broadcast live update to Web Preview Player
+        broadcast_draft_update(draft_id=draft_id, action="save", project_name=project_name or draft_id)
+
+        # Trigger Desktop Auto-Reload if requested
+        reload_info = None
+        if auto_reload:
+            reload_info = reload_capcut_desktop(project_name=project_name or draft_id)
+
         result["success"] = True
         result["output"] = draft_result
+        if reload_info:
+            result["desktop_reload"] = reload_info
         return jsonify(result)
         
     except Exception as e:
         error_message = f"Error occurred while saving draft: {str(e)}. "
         result["error"] = error_message
         return jsonify(result)
+
+@app.route('/reload_desktop', methods=['GET', 'POST'])
+def reload_desktop():
+    data = request.get_json(silent=True) or {}
+    project_name = data.get('project_name') or request.args.get('project_name')
+    res = reload_capcut_desktop(project_name=project_name)
+    return jsonify({"success": res.get("success", False), "output": res})
+
+
+@app.route('/list_projects', methods=['GET', 'POST'])
+def list_projects():
+    try:
+        proj_dir = _get_capcut_desktop_projects_dir()
+        if not proj_dir or not os.path.exists(proj_dir):
+            return jsonify({"success": True, "output": {"projects": [], "message": "CapCut directory not found"}})
+        
+        projects = []
+        for item in os.listdir(proj_dir):
+            item_path = os.path.join(proj_dir, item)
+            if os.path.isdir(item_path) and not item.startswith('.'):
+                content_path = os.path.join(item_path, "draft_content.json")
+                is_locked = os.path.exists(os.path.join(item_path, ".locked"))
+                mtime = os.path.getmtime(item_path)
+                projects.append({
+                    "name": item,
+                    "path": item_path,
+                    "is_locked": is_locked,
+                    "has_draft_content": os.path.exists(content_path),
+                    "modified_time": datetime.fromtimestamp(mtime).isoformat()
+                })
+        projects.sort(key=lambda x: x["modified_time"], reverse=True)
+        return jsonify({"success": True, "output": {"count": len(projects), "projects": projects}})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/read_project', methods=['POST'])
+def read_project():
+    data = request.get_json() or {}
+    project_name = data.get('project_name')
+    if not project_name:
+        return jsonify({"success": False, "error": "Missing project_name parameter"})
+    
+    proj_dir = _get_capcut_desktop_projects_dir()
+    target_dir = os.path.join(proj_dir, project_name) if (proj_dir and not os.path.isabs(project_name)) else project_name
+
+    if not os.path.exists(target_dir):
+        return jsonify({"success": False, "error": f"Project path does not exist: {target_dir}"})
+
+    content_file = os.path.join(target_dir, "draft_content.json")
+    timelines_dir = os.path.join(target_dir, "Timelines")
+    if os.path.exists(timelines_dir):
+        subdirs = [os.path.join(timelines_dir, d) for d in os.listdir(timelines_dir) if os.path.isdir(os.path.join(timelines_dir, d))]
+        if subdirs and os.path.exists(os.path.join(subdirs[0], "draft_content.json")):
+            content_file = os.path.join(subdirs[0], "draft_content.json")
+
+    if not os.path.exists(content_file):
+        return jsonify({"success": False, "error": f"draft_content.json not found in {target_dir}"})
+
+    try:
+        with open(content_file, "r", encoding="utf-8") as f:
+            draft_data = json.load(f)
+
+        return jsonify({
+            "success": True,
+            "output": {
+                "project_name": os.path.basename(target_dir),
+                "path": target_dir,
+                "duration_us": draft_data.get("duration", 0),
+                "fps": draft_data.get("fps", 30),
+                "canvas_config": draft_data.get("canvas_config", {}),
+                "tracks_count": len(draft_data.get("tracks", [])),
+                "materials_summary": {
+                    "videos": len(draft_data.get("materials", {}).get("videos", [])),
+                    "audios": len(draft_data.get("materials", {}).get("audios", [])),
+                    "texts": len(draft_data.get("materials", {}).get("texts", []))
+                }
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 # Add new query status interface
 @app.route('/query_draft_status', methods=['POST'])
@@ -1432,4 +1585,4 @@ def get_video_character_effect_types():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=PORT)
+    app.run(host='127.0.0.1', port=PORT)

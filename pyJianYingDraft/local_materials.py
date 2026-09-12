@@ -6,6 +6,11 @@ from typing import Optional, Literal
 from typing import Dict, Any
 import imageio.v2 as imageio
 
+def _is_remote_url(url: str) -> bool:
+    """判断给定的字符串是否是真正的远程 http(s) 资源, 而非本地文件路径"""
+    return url.lower().startswith(("http://", "https://"))
+
+
 class Crop_settings:
     """素材的裁剪设置, 各属性均在0-1之间, 注意素材的坐标原点在左上角"""
 
@@ -105,7 +110,13 @@ class Video_material:
             if not material_name:
                 raise ValueError("使用 remote_url 参数时必须指定 material_name")
             self.remote_url = remote_url
-            self.path = ""  # 远程资源没有本地路径
+            if _is_remote_url(remote_url):
+                self.path = ""  # 远程资源没有本地路径
+            else:
+                # remote_url 实际上是一个本地文件路径（调用方未显式传 path），
+                # 仍然填充可用的本地路径，避免生成 path="" 的损坏草稿
+                local_path = os.path.abspath(remote_url)
+                self.path = local_path if os.path.exists(local_path) else ""
         else:
             # 处理本地文件情况
             path = os.path.abspath(path)
@@ -315,7 +326,15 @@ class Audio_material:
         
         self.material_name = material_name if material_name else (os.path.basename(path) if path else "unknown")
         self.material_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.material_name).hex
-        self.path = path if path else ""
+        if path:
+            self.path = path
+        elif remote_url and not _is_remote_url(remote_url):
+            # remote_url 实际上是一个本地文件路径（调用方未显式传 path），
+            # 仍然填充可用的本地路径，避免生成 path="" 的损坏草稿
+            local_path = os.path.abspath(remote_url)
+            self.path = local_path if os.path.exists(local_path) else ""
+        else:
+            self.path = ""
         self.replace_path = replace_path
         self.remote_url = remote_url
         

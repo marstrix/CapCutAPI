@@ -40,8 +40,8 @@ def build_asset_path(draft_folder: str, draft_id: str, asset_type: str, material
     """
     return build_draft_asset_path(draft_folder, draft_id, asset_type, material_name)
 
-def save_draft_background(draft_id, draft_folder, task_id):
-    """Background save draft to OSS"""
+def save_draft_background(draft_id, draft_folder, task_id, project_name=None, auto_deploy=True):
+    """Background save draft to OSS and auto-deploy to CapCut desktop"""
     try:
         # Get draft information from global cache
         if draft_id not in DRAFT_CACHE:
@@ -105,9 +105,10 @@ def save_draft_background(draft_id, draft_folder, task_id):
             for audio in audios:
                 remote_url = audio.remote_url
                 material_name = audio.material_name
-                # Use helper function to build path
-                if draft_folder:
-                    audio.replace_path = build_asset_path(draft_folder, draft_id, "audio", material_name)
+                # Use helper function to build path. This must match output_base_dir
+                # (which falls back to current_dir), since that's where the file is
+                # actually downloaded/copied to below, regardless of draft_folder.
+                audio.replace_path = build_asset_path(output_base_dir, draft_id, "audio", material_name)
                 if not remote_url:
                     logger.warning(f"Audio file {material_name} has no remote_url, skipping download.")
                     continue
@@ -128,9 +129,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
                 material_name = video.material_name
                 
                 if video.material_type == 'photo':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video.replace_path = build_asset_path(draft_folder, draft_id, "image", material_name)
+                    # Use helper function to build path. Must match output_base_dir,
+                    # since that's where the file is actually downloaded/copied to below.
+                    video.replace_path = build_asset_path(output_base_dir, draft_id, "image", material_name)
                     if not remote_url:
                         logger.warning(f"Image file {material_name} has no remote_url, skipping download.")
                         continue
@@ -144,9 +145,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
                     })
                 
                 elif video.material_type == 'video':
-                    # Use helper function to build path
-                    if draft_folder:
-                        video.replace_path = build_asset_path(draft_folder, draft_id, "video", material_name)
+                    # Use helper function to build path. Must match output_base_dir,
+                    # since that's where the file is actually downloaded/copied to below.
+                    video.replace_path = build_asset_path(output_base_dir, draft_id, "video", material_name)
                     if not remote_url:
                         logger.warning(f"Video file {material_name} has no remote_url, skipping download.")
                         continue
@@ -244,7 +245,37 @@ def save_draft_background(draft_id, draft_folder, task_id):
         update_task_field(task_id, "progress", 100)
         update_task_field(task_id, "message", "Draft creation completed")
         logger.info(f"Task {task_id} completed, draft URL: {draft_url}")
-        return draft_url
+
+        # Auto-deploy to CapCut Desktop projects directory
+        deployed_path = None
+        if auto_deploy or project_name:
+            target_name = project_name or draft_id
+            capcut_projects_dir = None
+            if os.name == 'nt':
+                p = os.path.expandvars(r"%LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft")
+                if os.path.exists(p):
+                    capcut_projects_dir = p
+            else:
+                mac_p = os.path.expanduser('~/Library/Containers/com.lemon.lvpro/Data/Documents/JianyingPro/User Data/Projects/com.lveditor.draft')
+                if os.path.exists(mac_p):
+                    capcut_projects_dir = mac_p
+
+            if capcut_projects_dir:
+                try:
+                    dest_dir = os.path.join(capcut_projects_dir, target_name)
+                    if os.path.exists(dest_dir):
+                        shutil.rmtree(dest_dir)
+                    shutil.copytree(draft_dir, dest_dir)
+                    # Clear any stale .locked file in destination
+                    lock_f = os.path.join(dest_dir, ".locked")
+                    if os.path.exists(lock_f):
+                        os.remove(lock_f)
+                    logger.info(f"Auto-deployed draft to CapCut directory: {dest_dir}")
+                    deployed_path = dest_dir
+                except Exception as ex:
+                    logger.error(f"Failed to auto-deploy draft to CapCut: {str(ex)}")
+
+        return draft_url if IS_UPLOAD_DRAFT else (deployed_path or draft_dir)
 
     except Exception as e:
         # Update task status - Failed
@@ -257,9 +288,9 @@ def save_draft_background(draft_id, draft_folder, task_id):
 def query_task_status(task_id: str):
     return get_task_status(task_id)
 
-def save_draft_impl(draft_id: str, draft_folder: str = None) -> Dict[str, str]:
+def save_draft_impl(draft_id: str, draft_folder: str = None, project_name: str = None, auto_deploy: bool = True) -> Dict[str, str]:
     """Start a background task to save the draft"""
-    logger.info(f"Received save draft request: draft_id={draft_id}, draft_folder={draft_folder}")
+    logger.info(f"Received save draft request: draft_id={draft_id}, draft_folder={draft_folder}, project_name={project_name}, auto_deploy={auto_deploy}")
     try:
         # Generate a unique task ID
         task_id = draft_id
@@ -269,7 +300,7 @@ def save_draft_impl(draft_id: str, draft_folder: str = None) -> Dict[str, str]:
         # Changed to synchronous execution
         return {
             "success": True,
-            "draft_url": save_draft_background(draft_id, draft_folder, task_id)
+            "draft_url": save_draft_background(draft_id, draft_folder, task_id, project_name=project_name, auto_deploy=auto_deploy)
             }
 
         # # Start a background thread to execute the task
