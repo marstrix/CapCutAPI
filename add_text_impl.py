@@ -53,6 +53,13 @@ def add_text_impl(
     height: int = 1920,
     fixed_width: float = -1,  # Text fixed width ratio, default -1 means not fixed
     fixed_height: float = -1,  # Text fixed height ratio, default -1 means not fixed
+    # Typography & styling enhancements
+    bold: bool = False,
+    italic: bool = False,
+    underline: bool = False,
+    align: int = 1,  # 0: left, 1: center, 2: right
+    line_spacing: float = 0.25,  # float ratio or integer units
+    letter_spacing: float = 0.0,
     # 多样式文本参数
     text_styles: Optional[List[TextStyleRange]] = None,  # 文本的不同部分的样式列表
 ):
@@ -202,6 +209,11 @@ def add_text_impl(
     if fixed_height > 0:
         pixel_fixed_height = int(fixed_height * script.height)
     
+    # Convert line_spacing and letter_spacing to pyJianYingDraft integer units
+    mapped_line_spacing = int(line_spacing * 20) if line_spacing <= 2.0 else int(line_spacing)
+    mapped_letter_spacing = int(letter_spacing * 20) if letter_spacing <= 2.0 else int(letter_spacing)
+    mapped_align = 1 if align in (1, "center") else (0 if align in (0, "left") else 2)
+
     # Create text segment (using configurable parameters)
     text_segment = draft.Text_segment(
         text,
@@ -210,7 +222,12 @@ def add_text_impl(
         style=draft.Text_style(
             color=rgb_color,
             size=font_size,
-            align=1,
+            bold=bold,
+            italic=italic,
+            underline=underline,
+            align=mapped_align,
+            line_spacing=mapped_line_spacing,
+            letter_spacing=mapped_letter_spacing,
             vertical=vertical,  # Set whether to display vertically
             alpha=font_alpha  # Set transparency
         ),
